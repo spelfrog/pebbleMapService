@@ -2,6 +2,16 @@
 
 Microservice for creating heatmaps from Dr. Plano booking api
 
+## Docker/Docker
+### Build
+```bash
+podman build -t pebbleMap .
+```
+### Run
+```bash
+podman run -td -p 8041:8041 -e AUTH_TOKEN=$token --name pebbleMap pebbleMap
+```
+
 ## Authentication
 
 All request need an Authentication token. Use ether the `Authentication` header or send the token via the GET

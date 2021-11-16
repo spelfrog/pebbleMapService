@@ -5,7 +5,7 @@ from functools import wraps
 
 from flask import Flask, jsonify, request, abort
 
-from pebbleMap.model import Plano
+from model import Plano
 from view import HeatMapResponse
 
 app = Flask(__name__)
