@@ -1,37 +1,81 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+from functools import wraps
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request, abort
 
 from pebbleMap.model import Plano
-from view import map_response
+from view import HeatMapResponse
 
 app = Flask(__name__)
 
-start_of_month = datetime.today().replace(day=1, hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
-end_of_month = datetime.today().replace(day=30, hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
-
 if app.debug:
     from test_models import TestPlanoModel
+
     Plano.data = TestPlanoModel.mocked_data
 
 
+def general_params(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        today = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
+
+        start = request.args.get('start', type=int, default=today - timedelta(days=5))
+        end = request.args.get('end', type=int, default=today + timedelta(days=3))
+        course_id = request.args.get('course_id', type=int, default=None)
+        print("general_params")
+        if not course_id:
+            abort(400, "course_id is mandatory")
+            print("after raise")
+        return f(*args, start=start, end=end, course_id=course_id, **kwargs)
+
+    return wrapper
+
+
+def heatmap_params(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        params = dict()
+
+        background = request.args.get('background', type=str)
+        if background is not None:
+            params['background'] = background
+
+        size = request.args.get('size', type=str)
+        if size is not None:
+            width, height = map(int, size.split(",", 1))
+            if width > 0 and height > 0:
+                params['size'] = (width, height)
+            else:
+                abort(400, "Size (<with>,<height>) must be a positive integer!")
+
+        return f(*args, **params, **kwargs)
+
+    return wrapper
+
+
 @app.route("/api/slots")
-def slots():
-    return jsonify(Plano.slots(start=start_of_month, end=end_of_month, course_id=108189856))
-
-
-@app.route("/api/slots/heatmap")
-def slots_map():
-    data = Plano.slots(start=start_of_month, end=end_of_month, course_id=108189856)
-    return map_response(data)
+@general_params
+def slots(start, end, course_id):
+    return jsonify(Plano.slots(start, end, course_id))
 
 
 @app.route("/api/occupancy")
-def occupancy():
-    return jsonify(Plano.occupancy(start=start_of_month, end=end_of_month, course_id=108189856))
+@general_params
+def occupancy(start, end, course_id):
+    return jsonify(Plano.occupancy(start, end, course_id))
+
+
+@app.route("/api/slots/heatmap")
+@heatmap_params
+@general_params
+def slots_map(start, end, course_id, **kwargs):
+    data = Plano.slots(start, end, course_id)
+    return HeatMapResponse(data, **kwargs)
 
 
 @app.route("/api/occupancy/heatmap")
-def occupancy_map():
-    data = Plano.occupancy(start=start_of_month, end=end_of_month, course_id=108189856)
-    return map_response(data)
+@heatmap_params
+@general_params
+def occupancy_map(start, end, course_id, **kwargs):
+    data = Plano.occupancy(start, end, course_id)
+    return HeatMapResponse(data, **kwargs)

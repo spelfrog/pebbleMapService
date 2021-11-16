@@ -30,7 +30,7 @@ def slots_to_data_frame(segments: list[Slot]) -> pd.DataFrame:
     return df
 
 
-def create_heatmap(segments: list[Slot], size: tuple[int, int] = (5, 6), background="#fff") -> plt.Figure:
+def create_heatmap(segments: list[Slot], size: tuple[int, int] = (5, 6), background="#fff0") -> plt.Figure:
     width = size[0]
     height = size[1]
     # "canvas padding"
@@ -65,9 +65,10 @@ def figure_to_bytes(figure: plt.Figure) -> bytes:
     return out.getvalue()
 
 
-def map_response(segments: list[Slot], size: tuple[int, int] = (5, 6), background="#0000") -> Response:
-    figure = create_heatmap(segments, size, background)
-    return Response(figure_to_bytes(figure), mimetype='image/png')
+class HeatMapResponse(Response):
+    def __init__(self, segments: list[Slot], **kwargs) -> None:
+        figure = create_heatmap(segments, **kwargs)
+        super().__init__(figure_to_bytes(figure), mimetype='image/png')
 
 
 if __name__ == "__main__":
@@ -76,6 +77,6 @@ if __name__ == "__main__":
 
     Plano.data = TestPlanoModel.mocked_data
     start = time.time()
-    plot = create_heatmap(Plano.occupancy(datetime.now(), datetime.now(), 123))
+    plot = create_heatmap(Plano.occupancy(datetime.now(), datetime.now(), 123), background="#fff")
     plot.show()
     print((time.time() - start) * 1000)
