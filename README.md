@@ -2,6 +2,11 @@
 
 Microservice for creating heatmaps from Dr. Plano booking api
 
+## Authentication
+
+All request need an Authentication token. Use ether the `Authentication` header or send the token via the GET
+Parameter `token` e.g. `token=abc123`
+
 ## API Parameter
 
 ### General
@@ -9,7 +14,7 @@ Microservice for creating heatmaps from Dr. Plano booking api
 | Parameter    | required   | description |
 |--------------|------------|-------------|
 | `start`      | optional   | Start date as POSIX timestamp e.g. `start=1637030000` |
-| `end`        | optional   | End date as POSIX timestamp e.g. `start=1637123000`        |
+| `end`        | optional   | End date as POSIX timestamp e.g. `start=1637123000`   |
 | `course_id`  | required   | Dr. Plano course id        |
 
 ### Heatmaps
@@ -26,7 +31,7 @@ Microservice for creating heatmaps from Dr. Plano booking api
 Displays booked slots as heatmap
 
 ```bash
-curl "http://0.0.0.0:5000/api/slots/heatmap?course_id=123456" --output heatmap.png
+curl -H "Authorization: abc123" "http://0.0.0.0:5000/api/slots/heatmap?course_id=123456" --output heatmap.png
 ```
 
 ![Slots](img/heatmap-week-slots.png)
@@ -36,7 +41,7 @@ curl "http://0.0.0.0:5000/api/slots/heatmap?course_id=123456" --output heatmap.p
 Displays estimate amount of people as heatmap
 
 ```bash
-curl "http://0.0.0.0:5000/api/occupancy/heatmap?course_id=123456" --output heatmap.png
+curl -H "Authorization: abc123" "http://0.0.0.0:5000/api/occupancy/heatmap?course_id=123456" --output heatmap.png
 ```
 
 ![Slots](img/heatmap-week-occupancy.png)
@@ -46,7 +51,7 @@ curl "http://0.0.0.0:5000/api/occupancy/heatmap?course_id=123456" --output heatm
 Debug endpoint displays data used for booked slots heatmap
 
 ```bash
-curl "http://0.0.0.0:5000/api/slots?course_id=123456"
+curl -H "Authorization: abc123" "http://0.0.0.0:5000/api/slots?course_id=123456"
 ```
 
 ```json
@@ -72,7 +77,7 @@ curl "http://0.0.0.0:5000/api/slots?course_id=123456"
 Debug endpoint displays data used for occupancy heatmap
 
 ```bash
-curl "http://0.0.0.0:5000/api/occupancy?course_id=123456"
+curl -H "Authorization: abc123" "http://0.0.0.0:5000/api/occupancy?course_id=123456"
 ```
 
 ```json

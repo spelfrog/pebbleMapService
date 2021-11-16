@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta
 from functools import wraps
 
@@ -7,11 +8,22 @@ from pebbleMap.model import Plano
 from view import HeatMapResponse
 
 app = Flask(__name__)
+auth_token = os.environ.get("AUTH_TOKEN", None)
+if not auth_token:
+    print("auth token not defined")
+    exit(1)
 
 if app.debug:
     from test_models import TestPlanoModel
 
     Plano.data = TestPlanoModel.mocked_data
+
+
+@app.before_request
+def before_request_func():
+    token = request.headers.get('Authorization', request.args.get("token"))
+    if not token == auth_token:
+        abort(403)
 
 
 def general_params(f):
@@ -22,10 +34,8 @@ def general_params(f):
         start = request.args.get('start', type=int, default=today - timedelta(days=5))
         end = request.args.get('end', type=int, default=today + timedelta(days=3))
         course_id = request.args.get('course_id', type=int, default=None)
-        print("general_params")
         if not course_id:
             abort(400, "course_id is mandatory")
-            print("after raise")
         return f(*args, start=start, end=end, course_id=course_id, **kwargs)
 
     return wrapper
