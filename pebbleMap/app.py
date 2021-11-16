@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import datetime, timedelta
 from functools import wraps
@@ -24,6 +25,21 @@ def before_request_func():
     token = request.headers.get('Authorization', request.args.get("token"))
     if not token == auth_token:
         abort(403)
+
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    """Return JSON instead of HTML for HTTP errors."""
+    # start with the correct headers and status code from the error
+    response = e.get_response()
+    # replace the body with JSON
+    response.data = json.dumps({
+        "code": e.code,
+        "name": e.name,
+        "description": e.description,
+    })
+    response.content_type = "application/json"
+    return response
 
 
 def general_params(f):
