@@ -47,8 +47,11 @@ def general_params(f):
     def wrapper(*args, **kwargs):
         today = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
 
-        start = request.args.get('start', type=int, default=today - timedelta(days=5))
-        end = request.args.get('end', type=int, default=today + timedelta(days=3))
+        start = datetime.fromtimestamp(
+            request.args.get('start', type=int, default=(today - timedelta(days=5)).timestamp() * 1000) / 1000)
+        end = datetime.fromtimestamp(
+            request.args.get('end', type=int, default=(today + timedelta(days=3)).timestamp() * 1000) / 1000)
+        print(start, end)
         course_id = request.args.get('course_id', type=int, default=None)
         if not course_id:
             abort(400, "course_id is mandatory")
